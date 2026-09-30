@@ -37,9 +37,14 @@
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
   },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.0",
-    "vitest": "^2.1.9"
+    "vitest": "^2.1.9",
+    "wrangler": "^3.114.0"
   },
   "license": "MIT",
   "keywords": [
