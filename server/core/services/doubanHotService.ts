@@ -1,7 +1,11 @@
+if (typeof process !== "undefined" && process.env) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
 import { load } from "cheerio";
 import { ofetch } from "ofetch";
 import { DOUBAN_HOT_SOURCES } from "../../../config/doubanHot";
 import { MemoryCache } from "../cache/memoryCache";
+import { DOUBAN_FALLBACK_DATA } from "./doubanHotFallback";
 
 export interface DoubanHotItem {
   id?: number;
@@ -96,68 +100,54 @@ async function scrapeDoubanMovie(): Promise<DoubanHotItem[]> {
   return items;
 }
 
-async function scrapeDoubanTop250(): Promise<DoubanHotItem[]> {
-  const allItems: DoubanHotItem[] = [];
-  const totalPages = 10; // Top250 共10页，每页25个
+async function scrapeDoubanTop250(page: number = 1): Promise<DoubanHotItem[]> {
+  const start = Math.max(0, (page - 1) * 25);
+  const url = start === 0
+    ? "https://movie.douban.com/top250"
+    : `https://movie.douban.com/top250?start=${start}`;
 
-  for (let page = 0; page < totalPages; page++) {
-    const start = page * 25;
-    const url = start === 0
-      ? "https://movie.douban.com/top250"
-      : `https://movie.douban.com/top250?start=${start}`;
+  const html = await ofetch<string>(url, {
+    headers: { "user-agent": UA },
+    timeout: 8000,
+  });
+  const $ = load(html);
+  const items: DoubanHotItem[] = [];
 
-    try {
-      const html = await ofetch<string>(url, {
-        headers: { "user-agent": UA },
-        timeout: 10000,
-      });
-      const $ = load(html);
+  $(".article ol.grid_view li").each((_, el) => {
+    const dom = $(el);
+    const href = dom.find(".pic a").attr("href") || "";
+    const id = getNumbers(href);
+    const rawTitle = dom.find(".info .title").first().text() || "";
+    const scoreDom = dom.find(".info .rating_num");
+    const score = scoreDom.length ? scoreDom.text() : "0.0";
+    const title = rawTitle ? `【${score}】${rawTitle}` : "";
+    if (!title) return;
 
-      $(".article ol.grid_view li").each((_, el) => {
-        const dom = $(el);
-        const href = dom.find(".pic a").attr("href") || "";
-        const id = getNumbers(href);
-        const rawTitle = dom.find(".info .title").first().text() || "";
-        const scoreDom = dom.find(".info .rating_num");
-        const score = scoreDom.length ? scoreDom.text() : "0.0";
-        const title = rawTitle ? `【${score}】${rawTitle}` : "";
-        if (!title) return;
+    const img = dom.find("img");
+    const cover =
+      img.attr("data-src") ||
+      img.attr("data-original") ||
+      img.attr("src") ||
+      undefined;
 
-        const img = dom.find("img");
-        const cover =
-          img.attr("data-src") ||
-          img.attr("data-original") ||
-          img.attr("src") ||
-          undefined;
+    const coverUrl = cover
+      ? fixDoubanCoverUrl(cover.startsWith("//") ? "https:" + cover : cover)
+      : undefined;
 
-        const coverUrl = cover
-          ? fixDoubanCoverUrl(cover.startsWith("//") ? "https:" + cover : cover)
-          : undefined;
+    const quote = dom.find(".info .inq").text().trim();
+    const info = dom.find(".info .bd p").first().text().trim();
 
-        const quote = dom.find(".info .inq").text().trim();
-        const info = dom.find(".info .bd p").first().text().trim();
+    items.push({
+      id: id || undefined,
+      title,
+      cover: coverUrl,
+      desc: quote || info.split("/")[0].trim(),
+      hot: getNumbers(dom.find(".info .star span:last").text()),
+      url: href || `https://movie.douban.com/subject/${id}/`,
+    });
+  });
 
-        allItems.push({
-          id: id || undefined,
-          title,
-          cover: coverUrl,
-          desc: quote || info.split("/")[0].trim(),
-          hot: getNumbers(dom.find(".info .star span:last").text()),
-          url: href || `https://movie.douban.com/subject/${id}/`,
-        });
-      });
-
-      // 短暂延迟避免请求过快
-      if (page < totalPages - 1) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-    } catch (e) {
-      console.warn(`[DoubanTop250] 第 ${page + 1} 页抓取失败:`, (e as Error).message);
-      // 继续抓取下一页
-    }
-  }
-
-  return allItems;
+  return items;
 }
 
 /** 从电影详情页获取封面图片 */
@@ -660,32 +650,55 @@ export async function fetchDoubanHotByCategory(
   page: number = 1,
   limit: number = 25
 ): Promise<DoubanHotPageResult> {
-  const scrape = scrapers[category];
-  if (!scrape) {
-    return { items: [], hasMore: false };
-  }
-
-  const cacheKey = `douban-hot:${category}:page:${page}`;
+  const cacheKey = `douban-hot:${category}:page:${page}:limit:${limit}`;
 
   const cached = cache.get(cacheKey);
-  if (cached.hit && cached.value) {
+  if (cached.hit && cached.value && cached.value.items.length > 0) {
     return cached.value;
   }
 
-  try {
-    const allItems = await scrape();
+  const fallbackList = DOUBAN_FALLBACK_DATA[category] || [];
+  const getFallbackResult = (): DoubanHotPageResult => {
     const start = (page - 1) * limit;
     const end = start + limit;
-    const items = allItems.slice(start, end);
-    const hasMore = end < allItems.length;
+    const items = fallbackList.slice(start, end);
+    const hasMore = end < fallbackList.length;
+    return { items, hasMore };
+  };
 
-    const result: DoubanHotPageResult = { items, hasMore };
-    cache.set(cacheKey, result, CACHE_TTL_MS);
-    return result;
+  try {
+    let items: DoubanHotItem[] = [];
+    let hasMore = false;
+
+    if (category === "douban-top250") {
+      items = await scrapeDoubanTop250(page);
+      hasMore = page < 10 && items.length >= 25;
+    } else {
+      const scraper = scrapers[category];
+      if (scraper) {
+        const allItems = await scraper();
+        const start = (page - 1) * limit;
+        const end = start + limit;
+        items = allItems.slice(start, end);
+        hasMore = end < allItems.length;
+      }
+    }
+
+    if (items.length > 0) {
+      const result: DoubanHotPageResult = { items, hasMore };
+      cache.set(cacheKey, result, CACHE_TTL_MS);
+      return result;
+    }
   } catch (e) {
-    console.warn(`[DoubanHot] ${category} 分页抓取失败:`, (e as Error).message);
-    return { items: [], hasMore: false };
+    console.warn(`[DoubanHot] ${category} 抓取异常，启用精选备用榜单:`, (e as Error).message);
   }
+
+  // 抓取失败或返回空时，无缝返回精选榜单数据，保证前端栏目永不闪烁消失
+  const fallback = getFallbackResult();
+  if (fallback.items.length > 0) {
+    cache.set(cacheKey, fallback, 30 * 60 * 1000); // 缓存 30 分钟
+  }
+  return fallback;
 }
 
 export async function fetchDoubanHot(
@@ -708,36 +721,43 @@ export async function fetchDoubanHot(
       const config = DOUBAN_HOT_SOURCES.find((s) => s.route === route);
       if (!config) return;
 
-      const scrape = scrapers[route];
-      if (!scrape) {
+      const fallbackItems = DOUBAN_FALLBACK_DATA[config.id] || [];
+      const scraper = scrapers[route];
+      if (!scraper) {
         results.categories[config.id] = {
           id: config.id,
           label: config.label,
           title: config.label,
           type: "",
-          items: [],
+          items: fallbackItems,
         };
         return;
       }
 
       try {
-        const items = await scrape();
+        let items: DoubanHotItem[] = [];
+        if (route === "douban-top250") {
+          items = await scrapeDoubanTop250(1);
+        } else {
+          items = await scraper();
+        }
+
         results.categories[config.id] = {
           id: config.id,
           label: config.label,
           title: config.label,
           type: config.type || "",
-          items,
+          items: items.length > 0 ? items : fallbackItems,
         };
       } catch (e) {
         results.categories[config.id] = {
           id: config.id,
           label: config.label,
           title: config.label,
-          type: "",
-          items: [],
+          type: config.type || "",
+          items: fallbackItems,
         };
-        console.warn(`[DoubanHot] ${route} 抓取失败:`, (e as Error).message);
+        console.warn(`[DoubanHot] ${route} 抓取失败，使用备用数据:`, (e as Error).message);
       }
     })
   );

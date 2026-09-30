@@ -1,8 +1,6 @@
 <template>
-  <div v-if="!hasAnyData" class="hidden"></div>
-
-  <div v-else class="douban-section">
-    <!-- 分类 Tabs - 始终可点击 -->
+  <div class="douban-section">
+    <!-- 分类 Tabs - 始终保留并可点击 -->
     <nav class="category-nav" role="tablist">
       <button
         v-for="cat in availableCategories"
@@ -45,7 +43,7 @@
         @enter="onEnter"
         @leave="onLeave"
       >
-        <div v-show="!loading || items.length > 0" key="content" class="movie-grid">
+        <div v-if="items.length > 0" key="content" class="movie-grid">
           <transition-group
             name="card-fade"
             tag="div"
@@ -75,6 +73,12 @@
               </div>
             </button>
           </transition-group>
+        </div>
+
+        <!-- 兜底提示状态：确保栏目永不消失 -->
+        <div v-else-if="!loading" key="empty" class="empty-state">
+          <p class="empty-text">当前榜单正在更新或暂无条目</p>
+          <button class="retry-btn" type="button" @click="refresh">点击重新加载</button>
         </div>
       </transition>
 
@@ -141,10 +145,7 @@ const availableCategories = computed(() => {
   ];
 });
 
-// 是否有任何数据
-const hasAnyData = computed(() => {
-  return items.value.length > 0 || loading.value;
-});
+
 
 function onImgError(id: number) {
   if (!imgFailed.value.includes(id)) {
@@ -369,6 +370,42 @@ defineExpose({ init, refresh });
 .content-area {
   position: relative;
   min-height: 300px;
+}
+
+/* 兜底空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px dashed var(--border-light, #e5e7eb);
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+.empty-text {
+  font-size: 13px;
+  color: var(--text-tertiary, #9ca3af);
+  margin-bottom: 12px;
+}
+
+.retry-btn {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary, #0f766e);
+  background: rgba(15, 118, 110, 0.08);
+  border: 1px solid var(--primary, #0f766e);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: var(--primary, #0f766e);
+  color: #ffffff;
 }
 
 /* 骨架屏 Loading */
