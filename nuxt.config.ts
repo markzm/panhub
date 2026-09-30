@@ -18,7 +18,7 @@ export default defineNuxtConfig({
         {
           name: "description",
           content:
-            "PanHub：聚合阿里云盘、夸克、百度网盘、115、迅雷等平台的全网最全网盘搜索工具，实时检索分享资源，免费、快速、无广告。",
+            "PanHub 仅为公开网络资源聚合搜索工具，本身不存储任何文件或视频资料，一切版权归原作者所有。支持实时检索阿里云盘、夸克、百度网盘、115、迅雷等平台。",
         },
         {
           name: "keywords",
@@ -62,7 +62,7 @@ export default defineNuxtConfig({
     cacheTtlMinutes: channelsConfig.cacheTtlMinutes,
     public: {
       apiBase: "/api",
-      siteUrl: "https://panhub.shenzjd.com",
+      siteUrl: process.env.SITE_URL || "",
       // 向前端暴露默认频道清单
       tgDefaultChannels: channelsConfig.defaultChannels,
     },

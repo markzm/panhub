@@ -21,7 +21,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "#internal": "/Users/mac/github/panhub.shenzjd.com/.nuxt",
+      "#internal": new URL("./.nuxt", import.meta.url).pathname,
     },
   },
 });

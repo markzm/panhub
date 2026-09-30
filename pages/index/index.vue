@@ -6,19 +6,25 @@
       <header class="hero">
         <div class="hero-accent" aria-hidden="true" />
         <div class="hero-content">
-          <div class="hero-badge">PanHub 搜索聚合引擎</div>
+          <div class="hero-badge">🔍 搜索集合 · 纯净高效</div>
           <h1 class="hero-title">
-            <span class="hero-title-line">一键检索</span>
-            <span class="hero-title-line hero-title-line--accent">全网网盘资源</span>
+            <span class="hero-title-line">PanHub</span>
+            <span class="hero-title-line hero-title-line--accent">网盘资源搜索集合</span>
           </h1>
           <p class="hero-description">
-            聚合阿里云盘、夸克、百度网盘、115、迅雷等平台 · 快速、直达、少打扰
+            跨网盘公开资源实时索引 · 快速直达 · 智能去重 · 零广告干扰
           </p>
-          <ul class="hero-features" role="list">
-            <li class="hero-feature">实时聚合</li>
-            <li class="hero-feature">多平台覆盖</li>
-            <li class="hero-feature">结果去重</li>
-          </ul>
+
+          <!-- 重点版权与免责声明卡片 -->
+          <div class="statement-card">
+            <div class="statement-header">
+              <span class="statement-icon">⚖️</span>
+              <span class="statement-title">服务性质与版权声明</span>
+            </div>
+            <p class="statement-text">
+              本站仅为面向开放网络的<strong>搜索聚合工具</strong>，旨在提供公开分享信息的检索服务。<strong>本站本身不存储、不上传、不托管任何文件、数据、视频或资料等实际内容</strong>，所有链接均实时检索自公开第三方渠道，<strong>一切版权均归原作者及权利人所有</strong>。
+            </p>
+          </div>
         </div>
         <div class="hero-shape" aria-hidden="true" />
       </header>
@@ -125,6 +131,10 @@
 
     <!-- 豆瓣电影新片榜 - 搜索时隐藏 -->
     <section v-if="!searched" class="douban-hot-section">
+      <div class="douban-header-bar">
+        <span class="douban-bar-title">🎬 热门影视搜索参考</span>
+        <span class="douban-bar-tip">（仅提供网盘检索索引 · 本站不存储或提供任何视频文件及在线播放）</span>
+      </div>
       <DoubanHotSection ref="doubanHotRef" :on-search="quickSearch" />
     </section>
   </div>
@@ -151,19 +161,19 @@ onMounted(async () => {
 
 // SEO 元数据
 useSeoMeta({
-  title: "PanHub - 全网最全的网盘搜索",
+  title: "PanHub - 全网网盘资源搜索集合",
   description:
-    "聚合阿里云盘、夸克、百度网盘、115、迅雷等平台，实时检索各类分享链接与资源，免费、快速、无广告。",
-  ogTitle: "PanHub - 全网最全的网盘搜索",
+    "PanHub 仅为公开网络资源聚合搜索工具，本身不存储任何文件或视频资料，一切版权归原作者所有。支持实时检索阿里云盘、夸克、百度网盘、115、迅雷等平台。",
+  ogTitle: "PanHub - 全网网盘资源搜索集合",
   ogDescription:
-    "聚合阿里云盘、夸克、百度网盘、115、迅雷等平台，实时检索各类分享链接与资源，免费、快速、无广告。",
+    "PanHub 仅为公开网络资源聚合搜索工具，本身不存储任何文件或视频资料，一切版权归原作者所有。支持实时检索阿里云盘、夸克、百度网盘、115、迅雷等平台。",
   ogType: "website",
   ogSiteName: "PanHub",
   ogImage: siteUrl ? `${siteUrl}/og.svg` : "/og.svg",
   twitterCard: "summary_large_image",
-  twitterTitle: "PanHub - 全网最全的网盘搜索",
+  twitterTitle: "PanHub - 全网网盘资源搜索集合",
   twitterDescription:
-    "聚合阿里云盘、夸克、百度网盘、115、迅雷等平台，实时检索各类分享链接与资源，免费、快速、无广告。",
+    "PanHub 仅为公开网络资源聚合搜索工具，本身不存储任何文件或视频资料，一切版权归原作者所有。支持实时检索阿里云盘、夸克、百度网盘、115、迅雷等平台。",
   twitterImage: siteUrl ? `${siteUrl}/og.svg` : "/og.svg",
 });
 
@@ -482,36 +492,78 @@ function visibleSorted(items: any[]) {
   animation-delay: 0.2s;
 }
 
-.hero-features {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 20px;
-}
-
-.hero-feature {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--primary-dark);
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(15, 118, 110, 0.2);
-  border-radius: 10px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+/* 重点版权与免责声明卡片 */
+.statement-card {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(15, 118, 110, 0.22);
+  border-left: 4px solid var(--primary);
+  border-radius: 12px;
+  max-width: 540px;
+  backdrop-filter: blur(10px);
   animation: heroReveal 0.6s ease-out both;
+  animation-delay: 0.25s;
 }
 
-.hero-feature:nth-child(1) { animation-delay: 0.28s; }
-.hero-feature:nth-child(2) { animation-delay: 0.34s; }
-.hero-feature:nth-child(3) { animation-delay: 0.4s; }
+.statement-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
 
-.hero-feature:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.15);
-  border-color: rgba(15, 118, 110, 0.35);
+.statement-icon {
+  font-size: 13px;
+}
+
+.statement-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--primary-dark);
+}
+
+.statement-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.statement-text strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+@media (prefers-color-scheme: dark) {
+  .statement-card {
+    background: rgba(31, 41, 55, 0.75);
+    border-color: rgba(255, 255, 255, 0.12);
+    border-left-color: var(--primary);
+  }
+}
+
+/* 豆瓣榜单说明条 */
+.douban-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 0 4px;
+  flex-wrap: wrap;
+}
+
+.douban-bar-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.douban-bar-tip {
+  font-size: 12px;
+  color: var(--text-tertiary);
 }
 
 .hero-shape {
