@@ -5,17 +5,17 @@
   "type": "module",
   "private": true,
   "author": {
-    "name": "shenzjd",
-    "url": "https://github.com/wu529778790/panhub.shenzjd.com"
+    "name": "markzm",
+    "url": "https://github.com/markzm/panhub"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/wu529778790/panhub.shenzjd.com.git"
+    "url": "git+https://github.com/markzm/panhub.git"
   },
   "bugs": {
-    "url": "https://github.com/wu529778790/panhub.shenzjd.com/issues"
+    "url": "https://github.com/markzm/panhub/issues"
   },
-  "homepage": "https://github.com/wu529778790/panhub.shenzjd.com#readme",
+  "homepage": "https://github.com/markzm/panhub#readme",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
