@@ -26,4 +26,11 @@ describe("search keyword helpers", () => {
   it("matches text by cjk keyword variants", () => {
     expect(matchesSearchKeyword("经典高分电影: 肖申克 4K 修复版", "肖申克的救赎 4K")).toBe(true);
   });
+
+  it("handles single-character search keywords correctly", () => {
+    const variants = buildSearchKeywordVariants("书");
+    expect(variants).toContain("书");
+    expect(matchesSearchKeyword("心理学好书推荐合集", "书")).toBe(true);
+    expect(matchesSearchKeyword("电影推荐", "书")).toBe(false);
+  });
 });

@@ -211,7 +211,7 @@ export class SearchService {
     );
     const concurrency = Math.max(
       2,
-      Math.min(concurrencyOverride ?? this.options.defaultConcurrency, 12)
+      Math.min(concurrencyOverride ?? this.options.defaultConcurrency, 16)
     );
 
     const prioritySet = new Set(priorityChannels || []);
@@ -257,7 +257,9 @@ export class SearchService {
       keyword.trim().length > 1 &&
       chList.length > 0
     ) {
-      const deepTasks = [...priorityList, ...normalList].map((channel) =>
+      const targetDeepChannels =
+        priorityList.length > 0 ? priorityList : chList.slice(0, 10);
+      const deepTasks = targetDeepChannels.map((channel) =>
         createChannelTask(channel, SearchService.TG_DEEP_CHANNEL_LIMIT)
       );
       const deepResults = flattenResults(
@@ -454,11 +456,18 @@ export class SearchService {
         ? new Set(cloudTypes.map((value) => value.toLowerCase()))
         : undefined;
     const out: MergedLinks = {};
+    const seenUrlsByType: Record<string, Set<string>> = {};
     for (const result of results) {
       for (const link of result.links || []) {
         const type = (link.type || "").toLowerCase();
         if (allow && !allow.has(type)) continue;
-        if (!out[type]) out[type] = [];
+        if (!out[type]) {
+          out[type] = [];
+          seenUrlsByType[type] = new Set<string>();
+        }
+        const normUrl = (link.url || "").trim().toLowerCase();
+        if (normUrl && seenUrlsByType[type].has(normUrl)) continue;
+        if (normUrl) seenUrlsByType[type].add(normUrl);
         out[type].push({
           url: link.url,
           password: link.password,

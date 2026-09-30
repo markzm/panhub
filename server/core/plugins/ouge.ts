@@ -94,8 +94,6 @@ function parseLinks(fromStr: string, urlStr: string) {
 
 const OUGE_BASES = [
   "https://woog.nxog.eu.org",
-  "https://ouge.nxog.eu.org",
-  "https://api.nxog.eu.org",
 ];
 
 export class OugePlugin extends BaseAsyncPlugin {
@@ -114,22 +112,34 @@ export class OugePlugin extends BaseAsyncPlugin {
     if (queries[0]?.length <= 1) queries.push("电影", "movie", "1080p");
 
     for (const kw of queries) {
-      const tasks = OUGE_BASES.map((base) =>
-        ofetch<ApiResponse>(
-          `${base}/api.php/provide/vod?ac=detail&wd=${encodeURIComponent(
-            kw
-          )}` as string,
-          {
-            headers: {
-              "user-agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
-              accept: "application/json, text/plain, */*",
-              referer: `${base}/`,
-            },
-            timeout,
+      const tasks = OUGE_BASES.map(async (base) => {
+        try {
+          const res = await ofetch<any>(
+            `${base}/api.php/provide/vod?ac=detail&wd=${encodeURIComponent(
+              kw
+            )}`,
+            {
+              headers: {
+                "user-agent":
+                  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
+                accept: "application/json, text/plain, */*",
+                referer: `${base}/`,
+              },
+              timeout,
+            }
+          );
+          if (typeof res === "string") {
+            try {
+              return JSON.parse(res) as ApiResponse;
+            } catch {
+              return { code: -1, msg: "error", list: [] };
+            }
           }
-        ).catch(() => ({ code: -1, msg: "error", list: [] }))
-      );
+          return res as ApiResponse;
+        } catch {
+          return { code: -1, msg: "error", list: [] };
+        }
+      });
       const resps = await Promise.all(tasks);
       const list: ApiItem[] = [];
       for (const r of resps)

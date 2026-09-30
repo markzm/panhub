@@ -59,7 +59,7 @@ async function fetchLinksForPost(
       const json = await ofetch<any>(BUTTON_DETAIL(postId, i), {
         method: "POST",
         headers: { "user-agent": "Mozilla/5.0" },
-        timeout: 8000,
+        timeout: 3500,
       });
       const jwtUrl: string = json?.button?.url || "";
       if (!jwtUrl) return;

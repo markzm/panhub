@@ -28,18 +28,11 @@ export async function fetchTgChannelPosts(
 
     let html = "";
     try {
-      html = await ofetch<string>(url, { headers: { "user-agent": ua } });
+      html = await ofetch<string>(url, {
+        headers: { "user-agent": ua },
+        timeout: 3500,
+      });
     } catch {}
-
-    if (!html || !html.includes("tgme_widget_message")) {
-      const mirrorUrl = before
-        ? `https://r.jina.ai/https://t.me/s/${encodeURIComponent(channel)}?before=${before}`
-        : `https://r.jina.ai/https://t.me/s/${encodeURIComponent(channel)}`;
-
-      try {
-        html = await ofetch<string>(mirrorUrl, { headers: { "user-agent": ua } });
-      } catch {}
-    }
 
     if (!html || !html.includes("tgme_widget_message")) {
       break;
@@ -98,14 +91,28 @@ function parseChannelPage(
     if (host === "t.me" || host.endsWith(".t.me")) return "";
     if (host === "r.jina.ai") return "";
     if (host.endsWith("alipan.com") || host.endsWith("aliyundrive.com")) return "aliyun";
-    if (host === "pan.baidu.com") return "baidu";
-    if (host === "pan.quark.cn") return "quark";
+    if (host === "pan.baidu.com" || host.endsWith(".baidu.com")) return "baidu";
+    if (host === "pan.quark.cn" || host.endsWith("quark.sm.cn")) return "quark";
     if (host === "pan.xunlei.com") return "xunlei";
-    if (host.endsWith("123pan.com")) return "123";
+    if (
+      host.endsWith("123pan.com") ||
+      host.endsWith("123pan.cn") ||
+      host.endsWith("123684.com") ||
+      host.endsWith("123865.com")
+    ) return "123";
     if (host === "cloud.189.cn") return "tianyi";
     if (host === "115.com" || host.endsWith(".115.com")) return "115";
     if (host === "drive.uc.cn") return "uc";
-    if (host === "yun.139.com") return "mobile";
+    if (
+      host === "yun.139.com" ||
+      host === "caiyun.139.com" ||
+      host.endsWith(".139.com") ||
+      host.includes("feixin.10086.cn")
+    ) return "mobile";
+    if (host.includes("lanzou") || host.includes("lanzo")) return "lanzou";
+    if (host === "share.weiyun.com") return "weiyun";
+    if (host === "jianguoyun.com" || host.endsWith(".jianguoyun.com")) return "jianguoyun";
+    if (host.endsWith("mypikpak.com")) return "pikpak";
     return "";
   };
 

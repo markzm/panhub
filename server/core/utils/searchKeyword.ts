@@ -17,7 +17,7 @@ export function buildSearchKeywordVariants(keyword: string): string[] {
   const variants: string[] = [];
   const push = (value: string) => {
     const normalized = normalizeSearchKeyword(value);
-    if (normalized.length < 2) return;
+    if (normalized.length < 1) return;
     if (variants.some((item) => normalizeSearchKeyword(item) === normalized)) return;
     variants.push(value.trim());
   };

@@ -1,14 +1,11 @@
 // 插件名称常量
 export const ALL_PLUGIN_NAMES = [
   "pansearch",
-  "qupansou",
-  "panta",
   "hunhepan",
-  "jikepan",
-  "labi",
+  "wanou",
+  "ouge",
+  "susu",
   "thepiratebay",
-  "duoduo",
-  "xuexizhinan",
   "nyaa",
 ] as const;
 
@@ -32,8 +29,8 @@ export const PLATFORM_INFO: Record<
 // 默认用户设置
 export const DEFAULT_USER_SETTINGS = {
   enabledPlugins: [...ALL_PLUGIN_NAMES],
-  concurrency: 4,
-  pluginTimeoutMs: 5000,
+  concurrency: 12,
+  pluginTimeoutMs: 4000,
 } as const;
 
 // 本地存储键名
