@@ -43,8 +43,7 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.0",
-    "vitest": "^2.1.9",
-    "wrangler": "^3.114.0"
+    "vitest": "^2.1.9"
   },
   "license": "MIT",
   "keywords": [
